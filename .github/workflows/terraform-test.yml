@@ -1,0 +1,51 @@
+name: Reusable workflow for terraform test
+
+on:
+  workflow_call:
+
+jobs:
+  terraform-fmt:
+    runs-on: [ubuntu-latest]
+
+    steps:
+    - uses: actions/checkout@v2
+      name: Checkout source code
+
+    - name: terraform fmt
+      uses: dflook/terraform-fmt@v1
+
+  tflint:
+    runs-on: [ubuntu-latest]
+
+    steps:
+    - uses: actions/checkout@v2
+      name: Checkout source code
+
+    - uses: terraform-linters/setup-tflint@v2
+      name: Setup TFLint
+      with:
+        tflint_version: latest
+
+    - name: Init TFLint
+      run: tflint --init
+
+    - name: Run TFLint
+      run: tflint -f compact
+
+  checkov:
+    runs-on: [ubuntu-latest]
+
+    steps:
+    - uses: actions/checkout@v2
+      name: Checkout source code
+
+    - name: Run Checkov
+      id: checkov
+      uses: bridgecrewio/checkov-action@master
+      with:
+        quiet: true
+        soft_fail: false
+        framework: terraform
+        output_format: sarif
+        download_external_modules: true
+        log_level: INFO
